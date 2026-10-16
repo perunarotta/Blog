@@ -1,7 +1,7 @@
 pipeline {
     agent any
     stages {
-        stage('Checkoutt') {
+        stage('Checkout') {
             steps {
                 sh 'git pull origin main'
             }
@@ -11,7 +11,7 @@ pipeline {
                 sh 'docker build --pull --rm -f "Dockerfile" -t blog:latest "."'
             }
         }
-        stage('Test') {
+        stage('Trivy test') {
             steps {
                 echo 'Running unit tests...'
                 sh 'trivy image --exit-code 0 --severity MEDIUM,HIGH,CRITICAL --format table -o trivy-report.txt blog:latest'
@@ -19,18 +19,12 @@ pipeline {
         }
         stage('Dependency Scan') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')
-                    ]) {
-                        dependencyCheck(
-                            additionalArguments: """
-                            --scan .
-                            --format XML
-                            --nvdApiKey $NVD_API_KEY
-                            """,
-                            odcInstallation: 'DependencyCheck'
-                            )
-                    }
+                dependencyCheck(
+                    additionalArguments: '--scan . --format XML',
+                    odcInstallation: 'DependencyCheck',
+                    nvdCredentialsId: 'nvd-api-key'
+                )
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
         stage('Run') {
