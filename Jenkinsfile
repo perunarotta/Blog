@@ -1,7 +1,7 @@
 pipeline {
     agent any
     stages {
-        stage('Checkout') {
+        stage('Checkoutt') {
             steps {
                 sh 'git pull origin main'
             }
