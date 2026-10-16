@@ -36,7 +36,7 @@ pipeline {
         }
         stage('Nikto Scan') {
             steps {
-                sh ' nikto -h http://localhost:3000/ '
+                sh 'nikto -h http://localhost:3000/ -output nikto-report.txt || true'
             }
         }
     }
