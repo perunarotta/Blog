@@ -24,7 +24,7 @@ pipeline {
                     odcInstallation: 'DependencyCheck',
                     nvdCredentialsId: 'nvd-api-key'
                 )
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+//                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
         stage('Run') {
