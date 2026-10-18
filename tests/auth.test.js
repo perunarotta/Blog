@@ -152,3 +152,115 @@ describe("POST /auth/register", () => {
         }
     });
 });
+
+describe("POST /auth/register", () => {
+    it("Should not allow duplicate account usernames", async () => {
+        const username = `duplicate-${Date.now()}`;
+        const server = app.listen(0);
+        await new Promise((resolve) => server.once('listening', resolve));
+
+        try{
+            await new Promise((resolve, reject) => {
+                db.run(
+                    "INSERT INTO users (username, password, sessionId) VALUES (?, ?, ?)",
+                    [username, "existing-password-hash", 0],
+                    (error) => (error ? reject(error) : resolve())
+                );
+            });
+
+            const { port } = server.address();
+            const response = await fetch(`http://localhost:${port}/auth/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    username,
+                    password: "password"
+                }),
+                redirect: "manual"
+            });
+
+            expect(response.status).toBe(302);
+            expect(response.headers.get("location")).toBe("/auth/login");
+
+            const result = await new Promise((resolve, reject) => {
+                db.get(
+                    "SELECT COUNT(*) AS count FROM users WHERE username = ?",
+                    [username],
+                    (error, row) => (error ? reject(error) : resolve(row))
+                );
+            });
+            expect(result.count).toBe(1);
+        } finally {
+            await new Promise((resolve, reject) => {
+                db.run("DELETE FROM users WHERE username = ?", [username], (error) =>
+                    error ? reject(error) : resolve()
+                );
+            });
+            await new Promise((resolve, reject) =>
+                server.close((error) => (error ? reject(error) : resolve()))
+            );
+        }
+    });
+});
+
+describe("GET /", () => {
+    it('Should check for valid sessionId', async () => {
+        const server = app.listen(0);
+        await new Promise((resolve) => server.once("listening", resolve));
+
+        try{
+            const { port } = server.address();
+            const response = await fetch(`http://localhost:${port}/auth/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        username: "testuser",
+                        password: "password"
+                    }),
+                    redirect: "manual"
+                });
+            const cookie = response.headers.get('set-cookie');
+            expect(cookie).toContain('sessionId=');
+            const sessionId = cookie.match(/sessionId=([^;]+)/)[1];
+            const homeResponse = await fetch(`http://localhost:${port}/`, {
+                headers: { Cookie: `sessionId=${sessionId}` },
+                redirect: "manual"
+            });
+            expect(homeResponse.status).toBe(200)
+            const html = await homeResponse.text();
+            expect(html).toContain('href="/auth/logout"')
+        } finally {
+            await new Promise((resolve, reject) =>
+                server.close((error) => (error ? reject(error) : resolve()))
+            );
+        }    
+    })
+});
+
+describe("GET /new-post", () => {
+    it('Should redirect guests from protected pages', async () => {
+        const server = app.listen(0);
+        await new Promise((resolve) => server.once("listening", resolve));
+
+        try{
+            const { port } = server.address();
+            const response = await fetch(`http://localhost:${port}/new-post`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-form-urlencoded"
+                },
+                redirect: "manual"
+            });
+            expect(response.status).toBe(302);
+            expect(response.headers.get('location')).toBe("/auth/login")
+        } finally {
+            await new Promise((resolve, reject) =>
+                server.close((error) => (error ? reject(error) : resolve()))
+            );
+        }
+    })
+});
