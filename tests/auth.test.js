@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import bcrypt from "bcrypt";
 import db from "../database.js"
-import app from "..app.js"
+import app from "../app.js"
 
 describe("GET /auth/login", () => {
     it("Should render the correct login page view", async () => {
