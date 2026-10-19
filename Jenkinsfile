@@ -34,6 +34,11 @@ pipeline {
                 sh 'docker run -d -p 3000:3000 --name blog blog'
             }
         }
+        stage('Unit Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
         stage('Nikto Scan') {
             steps {
                 sh 'nikto -h http://localhost:3000/ -output nikto-report.txt || true'
