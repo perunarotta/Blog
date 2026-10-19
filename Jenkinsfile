@@ -65,19 +65,6 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'rapports/**', allowEmptyArchive: true
-            sh '''
-                reports_destination="$HOME/Projects/AppSec/Blog/rapports"
-                if [ ! -d "$(dirname "$reports_destination")" ]; then
-                    echo "Application checkout not found for Jenkins agent: $(dirname "$reports_destination")" >&2
-                    exit 1
-                fi
-
-                mkdir -p "$reports_destination"/trivy "$reports_destination"/nikto "$reports_destination"/owasp
-                rm -f "$reports_destination"/trivy/trivy-report.txt
-                rm -f "$reports_destination"/nikto/nikto-report.txt
-                rm -f "$reports_destination"/owasp/dependency-check-report.xml
-                cp -R rapports/. "$reports_destination"/
-            '''
         }
     }
 }
