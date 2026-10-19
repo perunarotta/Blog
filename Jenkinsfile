@@ -13,6 +13,7 @@ pipeline {
                     rm -f rapports/trivy/trivy-report.txt
                     rm -f rapports/nikto/nikto-report.txt
                     rm -f rapports/owasp/dependency-check-report.xml
+                    rm -f rapports/owasp/dependency-check-report.html
                 '''
             }
         }
@@ -30,7 +31,7 @@ pipeline {
         stage('Dependency Scan') {
             steps {
                 dependencyCheck(
-                    additionalArguments: '--scan . --format XML --out rapports/owasp',
+                    additionalArguments: '--scan . --format XML --format HTML --out rapports/owasp',
                     odcInstallation: 'DependencyCheck',
                     nvdCredentialsId: 'nvd-api-key'
                 )
