@@ -6,6 +6,11 @@ pipeline {
                 sh 'git pull origin main'
             }
         }
+        stage('Prepare reports') {
+            steps {
+                sh 'mkdir -p rapports/trivy rapports/nikto rapports/owasp'
+            }
+        }
         stage('Build') {
             steps {
                 sh 'docker build --pull --rm -f "Dockerfile" -t blog:latest "."'
@@ -14,13 +19,13 @@ pipeline {
         stage('Trivy test') {
             steps {
                 echo 'Running unit tests...'
-                sh 'trivy image --exit-code 0 --severity MEDIUM,HIGH,CRITICAL --format table -o trivy-report.txt blog:latest'
+                sh 'trivy image --exit-code 0 --severity MEDIUM,HIGH,CRITICAL --format table -o rapports/trivy/trivy-report.txt blog:latest'
             }
         }
         stage('Dependency Scan') {
             steps {
                 dependencyCheck(
-                    additionalArguments: '--scan . --format XML',
+                    additionalArguments: '--scan . --format XML --out rapports/owasp',
                     odcInstallation: 'DependencyCheck',
                     nvdCredentialsId: 'nvd-api-key'
                 )
@@ -48,8 +53,13 @@ pipeline {
         }
         stage('Nikto Scan') {
             steps {
-                sh 'nikto -h http://localhost:3000/ -output nikto-report.txt || true'
+                sh 'nikto -h http://localhost:3000/ -output rapports/nikto/nikto-report.txt || true'
             }
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'rapports/**', allowEmptyArchive: true
         }
     }
 }
