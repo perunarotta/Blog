@@ -59,8 +59,8 @@ describe("POST /auth/login", () => {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
                     body: new URLSearchParams({
-                        username: "test2",
-                        password: "test2"
+                        username: "testuser",
+                        password: "password"
                     }),
                     redirect: "manual"
                 });
