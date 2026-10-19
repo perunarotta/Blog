@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sh 'git pull origin main'
+                sh 'git pull origin defects'
             }
         }
         stage('Build') {
