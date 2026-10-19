@@ -34,6 +34,13 @@ pipeline {
                 sh 'docker run -d -p 3000:3000 --name blog blog'
             }
         }
+
+        stage('Install') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+
         stage('Unit Tests') {
             steps {
                 sh 'npm test'
