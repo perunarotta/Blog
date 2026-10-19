@@ -32,7 +32,7 @@ router.get('/register', (req, res) => {
 
 router.post('/register', (req, res) => {
     const { username, password } = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 10);
+    const hashedPassword = password;
     db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
         if (err) throw err;
         if (!user) {
